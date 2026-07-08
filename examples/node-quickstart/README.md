@@ -6,10 +6,10 @@ Vidu WebSocket requires an `Authorization: Token vda_xxx` header and the raw API
 key must not be shipped to browsers.
 
 The browser page loads Aliyun ARTC Web SDK from CDN, creates a live session,
-opens the Vidu control WebSocket, joins the returned RTC channel, publishes the
-user's microphone and camera, then subscribes to the digital-human stream. Media
-still flows directly through Aliyun RTC; the Node service only owns Vidu HTTP
-requests and the control WebSocket proxy.
+joins the returned RTC channel, publishes the user's microphone and camera, then
+opens the Vidu control WebSocket and subscribes to the digital-human stream.
+Media still flows directly through Aliyun RTC; the Node service only owns Vidu
+HTTP requests and the control WebSocket proxy.
 
 This Vidu flow does not configure Aliyun ARTC `AppKey` in the browser. Vidu
 returns the per-session `rtc.app_id` and `rtc.token`; the page first joins ARTC
@@ -50,8 +50,8 @@ The page depends on this official ARTC SDK script:
 ```
 
 Click **Start live call** from a browser tab opened by a user gesture. The page
-connects the Vidu control WebSocket, requests microphone/camera permission,
-joins RTC, and renders the digital-human stream.
+joins RTC, requests microphone/camera permission, connects the Vidu control
+WebSocket, and renders the digital-human stream.
 
 ## Endpoints
 
@@ -64,12 +64,13 @@ joins RTC, and renders the digital-human stream.
 
 ## Protocol Notes
 
-- The proxy sends `conn_init` as soon as Vidu's WebSocket opens.
+- The browser opens `/ws/live` after RTC join and local publish. The proxy sends
+  `conn_init` as soon as Vidu's WebSocket opens.
 - `NOT_READY` is treated as a warm-up state in video mode. The proxy closes the
   remote socket and reconnects with 2s, 4s, then 8s backoff.
 - `LIVE_CONN_INIT_FAILED` is fatal for that live session. Create a new live.
-- Server hangup messages (`type: 6`) and abnormal remote closes are surfaced in
-  the browser event log.
+- Server hangup messages (`type: 6`) and abnormal remote closes terminate the
+  browser session and are surfaced in the event log.
 - `hangup` sends WebSocket message `type: 5` with `hangup_reason: "user_end"`.
 
 ## RTC Integration
@@ -77,10 +78,9 @@ joins RTC, and renders the digital-human stream.
 The page also prints the `rtc` credentials for debugging. Its RTC flow is:
 
 - Create the live session through the Node service.
-- Open the Vidu control WebSocket immediately after live creation so remote
-  warm-up can proceed while browser media/RTC setup runs.
 - Join with `rtc.app_id`, `rtc.channel_id`, `rtc.user_id`, and `rtc.token`.
 - Publish the user's microphone. Publish camera only for `video` mode.
+- Open the Vidu control WebSocket after the local RTC publish step.
 - Configure local camera capture as 640x360, `maxSendFrameRate: 15`, and
   `bitrate: 800`.
 - Subscribe to the digital-human stream whose user id follows

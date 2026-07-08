@@ -105,8 +105,8 @@ elements.form.addEventListener('submit', async (event) => {
     logEvent('live_created', { live: data.live });
     logEvent('rtc_credentials_received', sanitizeRtc(data.rtc));
 
-    connectControlWs();
     await joinRtc(data.rtc, callMode);
+    connectControlWs();
   } catch (error) {
     setSessionState('Start failed');
     closeControlWs();
@@ -213,11 +213,6 @@ async function joinRtc(rtc = {}, callMode = 'video') {
   engine.setDefaultSubscribeAllRemoteAudioStreams?.(false);
   engine.setDefaultSubscribeAllRemoteVideoStreams?.(false);
   engine.enableAudioVolumeIndication?.(1000);
-  await setupLocalMedia(engine, callMode);
-  if (!isActiveRtc(engine, rtcSessionId)) {
-    return;
-  }
-
   await joinRtcChannel(engine, rtc);
   if (!isActiveRtc(engine, rtcSessionId)) {
     return;
@@ -225,6 +220,11 @@ async function joinRtc(rtc = {}, callMode = 'video') {
 
   state.joinedRtc = true;
   setRtcState('Joined');
+  await setupLocalMedia(engine, callMode);
+  if (!isActiveRtc(engine, rtcSessionId)) {
+    return;
+  }
+
   setCallState('live');
   await subscribeBotMedia();
 }
@@ -736,14 +736,37 @@ function applyProxyEvent(message) {
 
   if (message.event === 'server_hangup') {
     setSessionState(`Server hangup: ${message.reason}`);
-    leaveRtc();
-    setCallState('idle');
+    endRemoteTerminatedSession();
+    return;
+  }
+
+  if (message.event === 'remote_closed') {
+    setSessionState(`Remote WS closed: ${message.code || 'unknown'}`);
+    endRemoteTerminatedSession();
+    return;
+  }
+
+  if (message.event === 'remote_error') {
+    setSessionState('Remote WS error');
+    endRemoteTerminatedSession();
+    return;
   }
 
   if (message.event === 'fatal' || message.event === 'error') {
     setSessionState('WS failed');
-    setCallState('idle');
+    endRemoteTerminatedSession();
   }
+}
+
+function endRemoteTerminatedSession() {
+  if (state.callState !== 'idle') {
+    setCallState('ending');
+  }
+
+  closeControlWs();
+  leaveRtc().finally(() => {
+    setCallState('idle');
+  });
 }
 
 function isActiveRtc(engine, rtcSessionId) {

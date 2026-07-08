@@ -254,15 +254,25 @@ class LiveControlProxy {
     });
 
     remote.on('close', (code, reasonBuffer) => {
+      if (remote !== this.remote) {
+        return;
+      }
+
       const reason = reasonBuffer.toString();
       if (!this.closed && !this.retryTimer) {
         this.sendClient({ event: 'remote_closed', code, reason });
+        this.shutdown({ closeClient: true });
       }
     });
 
     remote.on('error', (error) => {
+      if (remote !== this.remote) {
+        return;
+      }
+
       if (!this.closed) {
         this.sendClient({ event: 'remote_error', message: error.message });
+        this.shutdown({ closeClient: true });
       }
     });
   }

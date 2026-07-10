@@ -24,8 +24,10 @@ vendor clarifications).
 
 Establish these with the user. They are prerequisites, not code:
 
-1. **API Key** in the form `Token vda_xxx` (from https://platform.vidu.cn/api-keys).
-   It goes in the `Authorization` header on every request.
+1. **API Key** from https://platform.vidu.cn/api-keys. Users may store it as either
+   `vda_xxx` or `Token vda_xxx`, but every Vidu HTTP/WS request must send
+   `Authorization: Token vda_xxx`. Placeholder values like `vda_your_api_key_here`
+   are not configured keys.
 2. **Avatar image** — a single-person image, as a public URL or base64 data URI.
 3. **Persona text** — a free-form description of who the digital human is.
 4. **Aliyun RTC SDK** — must be downloaded and integrated separately; media does
@@ -57,10 +59,16 @@ for step 2). The session starts in `status: waiting`.
 
 ### Step 2 — Join the Aliyun RTC channel
 
-Use `rtc.token` and `rtc.user_id` to `joinChannel`. Then:
+Use `rtc.token` and `rtc.user_id` to `joinChannel`. Some Aliyun RTC Web SDK
+versions accept the single token form, while others require an auth-info object
+such as `{ appId, channelId, userId, token, timestamp }` built from the `rtc`
+response. If join fails, check the SDK version's expected `joinChannel` signature
+before changing Vidu credentials. Then:
 - **Publish your microphone** — required, or the digital human can't hear the user.
 - **Publish your camera** — only in `video` mode.
-- **Subscribe to the bot's stream** — the bot's user id is `live-bot-{creatorID}-{liveID}`.
+- **Subscribe to the digital-human media stream** — usually
+  `live-bot-{creatorID}-{liveID}`, but treat `live-video-push-{creatorID}-{liveID}`
+  as a valid media source too.
 
 Role → RTC user-id format:
 
@@ -78,6 +86,7 @@ then wait for `conn_init_ack`:
 - `success: true` → the bot is live. **Billing starts now.**
 - `success: false, error_code: NOT_READY` → **expected in video mode.** Close the WS,
   wait, reconnect, retry with exponential backoff (2s → 4s → 8s). This is not an error.
+  Ignore close/message events from the socket you intentionally closed for this retry.
 - `success: false, error_code: LIVE_CONN_INIT_FAILED` → fatal. Go back to step 1 and
   create a new session.
 
@@ -85,8 +94,10 @@ then wait for `conn_init_ack`:
 
 The server pings every 5s; your client must send *any* message within 15s or it's
 dropped as a dead connection. Most WS libraries auto-reply to pings — confirm yours
-is enabled. Listen for a `type:6` hangup message, **and** add a fallback listener on
-the WS's abnormal-close event, because the server can drop you without a clean message.
+is enabled on the actual upstream Vidu connection. In a browser → backend proxy →
+Vidu design, this means the backend WS client must reply to Vidu pings. Listen for
+a `type:6` hangup message, **and** add a fallback listener on the WS's abnormal-close
+event, because the server can drop you without a clean message.
 
 ### Step 6 — End the call
 
@@ -109,9 +120,10 @@ These are the field-tested gotchas. The first two **correct** the public doc.
    each time. If the token expires, create a new session.
 
 3. **WebSocket auth uses the `Authorization: Token vda_xxx` header — query params are
-   NOT supported.** And because the header carries your raw Vidu token, **proxy the
-   WebSocket through your own server** so the token never reaches the browser/client.
-   Same applies to HTTP calls: never ship `vda_xxx` to untrusted clients.
+   NOT supported.** Browsers cannot set custom `Authorization` headers on native
+   WebSocket connections, and the header carries your raw Vidu token, so **proxy the
+   WebSocket through your own server**. Same applies to HTTP calls: never ship
+   `vda_xxx` to untrusted clients.
 
 4. **`video` mode WILL return `NOT_READY` on first connect — always.** This is the SIP
    side warming up, not a failure. You must implement the disconnect → backoff →
@@ -121,19 +133,29 @@ These are the field-tested gotchas. The first two **correct** the public doc.
    downloading and wiring up the ARTC SDK. Forgetting this is the most common
    "why can't I see/hear the avatar" bug.
 
-6. **Billing starts at `on_live`** (the moment `conn_init_ack` returns `success:true`),
+6. **Do not combine SDK auto-subscribe with repeated manual subscribe.** Disable
+   default remote auto-subscribe when manually selecting the bot/media user, and
+   dedupe in-flight/completed subscribe and view-attachment work. Multiple RTC events
+   can announce the same media user and otherwise look like duplicate streams or lag.
+
+7. **Guard against stale RTC and WS events.** A previous RTC session or upstream WS can
+   still emit late events after a retry, hangup, or new session. Ignore events unless
+   they belong to the currently active RTC session/socket, or they can corrupt the new
+   session's status, subscription state, or video view binding.
+
+8. **Billing starts at `on_live`** (the moment `conn_init_ack` returns `success:true`),
    not at session creation. Duration rounds *up* to even seconds (11s bills as 12s).
    The account needs a **minimum ~45 credits** (enough for 30s) to start a session;
    mid-session it keeps deducting and auto-disconnects when credits hit zero.
 
-7. **Audio and audio+video modes are priced identically** right now — mode choice is a
+9. **Audio and audio+video modes are priced identically** right now — mode choice is a
    product decision, not a cost lever.
 
-8. **The GET session response top-level shape is stable: `{ "live": { ... } }`.** Parse
+10. **The GET session response top-level shape is stable: `{ "live": { ... } }`.** Parse
    `live.id`, `live.status`, `live.billed_seconds` off that wrapper — don't expect the
    fields at the root.
 
-9. **`GET /live/v1/voices` returns ONLY custom cloned voices, by design.** The system
+11. **`GET /live/v1/voices` returns ONLY custom cloned voices, by design.** The system
    voice list is separate — see `references/voices.md`. Don't treat an "empty" voices
    response as an error; it just means no custom clones yet.
 

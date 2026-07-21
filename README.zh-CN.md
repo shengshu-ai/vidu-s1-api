@@ -44,6 +44,11 @@ AI 陪伴 · 虚拟偶像 · 培训讲解 · AI 客服 · 电商直播 · 影游
 暴露给浏览器。浏览器页面会使用 Vidu 返回的 RTC 凭证加入 Aliyun RTC，发布本地
 麦克风/摄像头媒体，渲染数字人视频流，并在 Event log 中输出 RTC/视频诊断信息。
 
+**Dify 插件**：查看 [`plugins/dify`](plugins/dify)，这是一个面向 Workflow 的
+Dify Tool Plugin，可创建 Vidu S1 实时会话，并返回结构化的会话、RTC 凭证、状态、
+计费和音色数据。RTC 客户端负责音视频媒体；可信服务端的控制客户端负责持有带鉴权、
+持续连接的 Vidu WebSocket。
+
 ```bash
 cp .env.example .env
 cd examples/node-quickstart

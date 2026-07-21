@@ -1,0 +1,114 @@
+identity:
+  name: create_live_session
+  author: shengshu-ai
+  label:
+    en_US: Create Live Session
+    zh_Hans: 创建实时会话
+description:
+  human:
+    en_US: Create a Vidu S1 live digital-human session and return RTC credentials.
+    zh_Hans: 创建 Vidu S1 实时数字人会话，并返回 RTC 凭证。
+  llm: Create a Vidu S1 live session from persona and avatar image URI. Return session metadata and RTC credentials for an external client.
+parameters:
+  - name: persona
+    type: string
+    required: true
+    label:
+      en_US: Persona
+      zh_Hans: 人设
+    human_description:
+      en_US: The digital human persona or system prompt.
+      zh_Hans: 数字人的人设或系统提示词。
+    llm_description: Detailed persona for the digital human.
+    form: llm
+  - name: image_uri
+    type: string
+    required: true
+    label:
+      en_US: Avatar Image URI
+      zh_Hans: 形象图片 URI
+    human_description:
+      en_US: Public image URL or supported base64 data URI for one person.
+      zh_Hans: 单人形象图片的公网 URL 或受支持的 base64 data URI。
+    llm_description: Public avatar image URL or base64 data URI.
+    form: llm
+  - name: name
+    type: string
+    required: false
+    label:
+      en_US: Avatar Name
+      zh_Hans: 数字人名称
+    human_description:
+      en_US: Optional display name for the avatar.
+      zh_Hans: 可选的数字人展示名称。
+    llm_description: Optional avatar display name.
+    form: llm
+  - name: voice
+    type: string
+    required: false
+    label:
+      en_US: Voice
+      zh_Hans: 音色
+    human_description:
+      en_US: Optional Vidu voice name. Leave empty to use the default voice.
+      zh_Hans: 可选的 Vidu 音色名称。留空则使用默认音色。
+    llm_description: Optional voice name.
+    form: llm
+  - name: call_mode
+    type: select
+    required: true
+    default: video
+    label:
+      en_US: Call Mode
+      zh_Hans: 通话模式
+    options:
+      - value: video
+        label:
+          en_US: Video
+          zh_Hans: 视频
+      - value: audio
+        label:
+          en_US: Audio
+          zh_Hans: 音频
+    human_description:
+      en_US: Use video for audio and video, or audio for voice-only sessions.
+      zh_Hans: video 表示音视频，audio 表示纯语音。
+    llm_description: Session media mode. Must be video or audio.
+    form: form
+output_schema:
+  type: object
+  properties:
+    live_id:
+      type: string
+      description: Vidu live session id.
+    status:
+      type: string
+      description: Initial live session status.
+    live_duration:
+      type: integer
+      description: Maximum live session duration in seconds.
+    call_mode:
+      type: string
+      description: Session media mode.
+    rtc:
+      type: object
+      description: Sensitive, single-session RTC join credentials.
+      properties:
+        app_id:
+          type: string
+          description: Aliyun RTC application id.
+        channel_id:
+          type: string
+          description: Aliyun RTC channel id.
+        user_id:
+          type: string
+          description: RTC user id assigned to the caller.
+        token:
+          type: string
+          description: Sensitive, short-lived RTC join token.
+        token_expire_at:
+          type: string
+          description: RTC token expiry Unix timestamp.
+extra:
+  python:
+    source: tools/create_live_session.py

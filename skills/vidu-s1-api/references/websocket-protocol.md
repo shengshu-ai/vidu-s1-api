@@ -84,7 +84,7 @@ without a clean type-6 message.
 | hangup_reason | trigger |
 |---|---|
 | `user_end` | user ended it |
-| `timeout` | session hit the 600s cap |
+| `timeout` | session hit its `live_duration` cap |
 | `audit_violation` | content moderation cut the session |
 | `credit_insufficient` | out of credits |
 | `sip_closed` | SIP/provider side closed |

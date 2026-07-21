@@ -46,7 +46,7 @@ Response:
   "live": {
     "id": "123456789",
     "status": "waiting",
-    "live_duration": 600,
+    "live_duration": 7200,
     "call_mode": "video"
   },
   "rtc": {
@@ -63,8 +63,8 @@ Response:
 |---|---|
 | `live.id` | Room id — required by every later step. Save it. |
 | `live.status` | Starts as `waiting` |
-| `live.live_duration` | Fixed 600s. **Not configurable via API** despite what the doc implies. |
-| `rtc.token` | RTC join credential. Lifetime synced to the 600s session — do not reuse across sessions. |
+| `live.live_duration` | Session duration cap in seconds. Use the returned positive integer; do not assume a fixed value. |
+| `rtc.token` | RTC join credential. Treat it as session-scoped and do not reuse it across sessions. |
 | `rtc.user_id` | Your username inside the RTC channel |
 | `rtc.token_expire_at` | Unix timestamp; expiry means create a new session |
 
@@ -80,7 +80,7 @@ Top-level shape is stable: `{ "live": { ... } }`.
     "id": "969824102288199680",
     "status": "on_live",
     "call_mode": "video",
-    "live_duration": 600,
+    "live_duration": 7200,
     "billed_seconds": 18,
     "credits_cost": 27,
     "avatar": { "persona": "...", "image_uri": "...", "name": "...", "voice": "Tina" },

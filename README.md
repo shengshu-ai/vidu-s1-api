@@ -51,6 +51,12 @@ browser page that joins Aliyun RTC with Vidu-issued credentials, publishes local
 microphone/camera media, renders the digital-human stream, and prints RTC/video
 diagnostics in the event log.
 
+**Dify plugin** — see [`plugins/dify`](plugins/dify) for a Workflow-oriented
+Dify Tool Plugin that creates Vidu S1 live sessions and returns structured
+session, RTC credential, status, billing, and voice data. An RTC client handles
+media, while a trusted server-side control client owns the authenticated,
+persistent Vidu WebSocket.
+
 ```bash
 cp .env.example .env
 cd examples/node-quickstart

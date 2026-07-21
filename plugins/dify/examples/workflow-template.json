@@ -1,0 +1,30 @@
+{
+  "name": "Vidu S1 Session Creation",
+  "description": "Template outline: collect persona and avatar image, create a Vidu S1 live session, then pass its RTC credentials to a trusted application backend.",
+  "inputs": [
+    {
+      "name": "persona",
+      "type": "string"
+    },
+    {
+      "name": "image_uri",
+      "type": "string"
+    }
+  ],
+  "tools": [
+    {
+      "provider": "vidu_s1",
+      "tool": "create_live_session",
+      "parameters": {
+        "persona": "{{persona}}",
+        "image_uri": "{{image_uri}}",
+        "call_mode": "video"
+      }
+    }
+  ],
+  "outputs": {
+    "live_id": "{{create_live_session.live_id}}",
+    "status": "{{create_live_session.status}}",
+    "rtc": "{{create_live_session.rtc}}"
+  }
+}

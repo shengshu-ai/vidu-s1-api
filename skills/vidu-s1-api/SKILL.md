@@ -107,17 +107,17 @@ Send a `hangup` message over the WS, close the WS, then call the RTC SDK's
 
 ## Pitfalls (read before implementing — these override the doc)
 
-These are the field-tested gotchas. The first two **correct** the public doc.
+These are field-tested integration gotchas.
 
-1. **`live_duration` is not configurable via the API — it is fixed at 600s.**
-   The doc implies you can request a duration; you cannot. Every session caps at
-   600 seconds, after which the server actively closes the connection. Design the UX
-   around a hard 10-minute ceiling. (Watch the doc for future iterations that add config.)
+1. **Do not assume a fixed `live_duration`.**
+   It is returned by the create API and may vary by the current service policy
+   (real responses have returned `7200`). Treat the returned positive integer as
+   authoritative and design the UX around that session-specific cap.
 
-2. **The RTC token's lifetime is synced to `live_duration` (600s), not "1 hour".**
-   The doc says the RTC token defaults to 1h; treat it as valid for the live session
-   only. Don't cache/reuse it across sessions — get fresh credentials from step 1
-   each time. If the token expires, create a new session.
+2. **Use `rtc.token_expire_at`; do not assume a fixed token lifetime.**
+   Treat the token as valid for its live session only. Don't cache/reuse it across
+   sessions — get fresh credentials from step 1 each time. If it expires, create a
+   new session.
 
 3. **WebSocket auth uses the `Authorization: Token vda_xxx` header — query params are
    NOT supported.** Browsers cannot set custom `Authorization` headers on native

@@ -88,8 +88,9 @@ The page also prints the `rtc` credentials for debugging. Its RTC flow is:
   SDK auto-subscribe and deduplicates manual subscription attempts for that
   selected media user.
 - Ignore late RTC events from old sessions using a per-session guard.
-- Treat the RTC token as session-scoped. The current live duration is fixed at
-  600 seconds.
+- Treat the RTC token as session-scoped. Read `live.live_duration` and
+  `rtc.token_expire_at` from each create response instead of assuming a fixed
+  duration; create fresh credentials for every session.
 
 ## Debugging
 

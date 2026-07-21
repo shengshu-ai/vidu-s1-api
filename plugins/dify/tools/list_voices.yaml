@@ -1,0 +1,23 @@
+identity:
+  name: list_voices
+  author: shengshu-ai
+  label:
+    en_US: List Voices
+    zh_Hans: 查询音色
+description:
+  human:
+    en_US: List custom cloned voices available to the Vidu account.
+    zh_Hans: 查询当前 Vidu 账号可用的自定义克隆音色。
+  llm: List custom cloned voices in the Vidu account. System voices are documented separately.
+parameters: []
+output_schema:
+  type: object
+  properties:
+    voices:
+      type: array
+      description: Custom cloned voices returned by Vidu.
+      items:
+        type: object
+extra:
+  python:
+    source: tools/list_voices.py

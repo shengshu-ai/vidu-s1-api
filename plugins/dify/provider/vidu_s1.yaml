@@ -1,0 +1,50 @@
+identity:
+  author: shengshu-ai
+  name: vidu_s1
+  label:
+    en_US: Vidu S1
+    zh_Hans: Vidu S1
+  description:
+    en_US: Create and inspect Vidu S1 live sessions from Dify workflows.
+    zh_Hans: 在 Dify Workflow 中创建和查询 Vidu S1 实时会话。
+  icon: icon.svg
+  tags:
+    - videos
+    - productivity
+credentials_for_provider:
+  vidu_api_key:
+    type: secret-input
+    required: true
+    label:
+      en_US: Vidu API Key
+      zh_Hans: Vidu API Key
+    placeholder:
+      en_US: vda_xxx or Token vda_xxx
+      zh_Hans: vda_xxx 或 Token vda_xxx
+    help:
+      en_US: Create an API key in the Vidu platform console.
+      zh_Hans: 在 Vidu 开放平台控制台创建 API Key。
+    url: https://platform.vidu.cn/api-keys
+  region:
+    type: select
+    required: true
+    default: cn
+    label:
+      en_US: Region
+      zh_Hans: 地区
+    options:
+      - value: cn
+        label:
+          en_US: China
+          zh_Hans: 中国
+      - value: global
+        label:
+          en_US: Global
+          zh_Hans: 全球
+tools:
+  - tools/create_live_session.yaml
+  - tools/get_live_session.yaml
+  - tools/list_voices.yaml
+extra:
+  python:
+    source: provider/vidu_s1.py

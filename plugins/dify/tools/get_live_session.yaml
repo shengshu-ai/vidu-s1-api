@@ -1,0 +1,47 @@
+identity:
+  name: get_live_session
+  author: shengshu-ai
+  label:
+    en_US: Get Live Session
+    zh_Hans: 查询实时会话
+description:
+  human:
+    en_US: Query a Vidu S1 live session status and billing fields.
+    zh_Hans: 查询 Vidu S1 实时会话状态和计费字段。
+  llm: Query a Vidu S1 live session by live_id and return status and billing data.
+parameters:
+  - name: live_id
+    type: string
+    required: true
+    label:
+      en_US: Live ID
+      zh_Hans: 会话 ID
+    human_description:
+      en_US: Vidu live session id.
+      zh_Hans: Vidu 实时会话 ID。
+    llm_description: Vidu live session id returned by create_live_session.
+    form: llm
+output_schema:
+  type: object
+  properties:
+    live_id:
+      type: string
+      description: Vidu live session id.
+    status:
+      type: string
+      description: Current live session status.
+    live_duration:
+      type: integer
+      description: Maximum live session duration in seconds.
+    call_mode:
+      type: string
+      description: Session media mode.
+    billed_seconds:
+      type: integer
+      description: Billed duration in seconds when returned by the API.
+    credits_cost:
+      type: integer
+      description: Credits consumed by the live session when returned by the API.
+extra:
+  python:
+    source: tools/get_live_session.py

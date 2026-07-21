@@ -1,0 +1,30 @@
+version: 0.0.1
+type: plugin
+author: shengshu-ai
+name: vidu_s1
+label:
+  en_US: Vidu S1
+  zh_Hans: Vidu S1
+description:
+  en_US: Create and inspect Vidu S1 live digital-human sessions from Dify.
+  zh_Hans: 在 Dify 中创建和查询 Vidu S1 实时数字人会话。
+icon: icon.svg
+resource:
+  memory: 268435456
+  permission:
+    tool:
+      enabled: true
+plugins:
+  tools:
+    - provider/vidu_s1.yaml
+meta:
+  version: 0.0.1
+  arch:
+    - amd64
+    - arm64
+  runner:
+    language: python
+    version: "3.12"
+    entrypoint: main
+privacy: PRIVACY.md
+created_at: 2026-07-14T00:00:00+08:00
